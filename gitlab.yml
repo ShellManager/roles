@@ -1,0 +1,46 @@
+---
+
+- hosts: nodes
+
+  become: true
+
+  tasks:
+    - name: Install required packages for GitLab (Debian-based)
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - curl
+        - postfix
+        - ca-certificates
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages for GitLab (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - curl
+        - policycoreutils-python
+        - postfix
+      when: ansible_os_family == "RedHat"
+    
+    - name: Run GitLab script (Debian-based)
+      shell: | 
+        curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | bash
+        EXTERNAL_URL="http://gitlab" apt-get install -y gitlab-ee
+      when: ansible_os_family == "Debian"
+
+    - name: "Buh bye SELinux!"
+      replace: 
+        dest: /etc/selinux/config
+        regexp: '(enforcing)'
+        replace: 'disabled'
+      when: ansible_os_family == "RedHat"
+
+    - name: Run GitLab script (RHEL-based)
+      shell: | 
+        firewall-cmd --permanent --add-service=http
+        curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | bash
+        EXTERNAL_URL="http://gitlab" yum install -y gitlab-ee
+      when: ansible_os_family == "RedHat"
