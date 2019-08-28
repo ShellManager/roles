@@ -1,0 +1,61 @@
+---
+
+- hosts: nodes
+
+  become: true
+
+  tasks:
+    - name: Install OpenLDAP (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - openldap
+        - openldap-servers
+      when: ansible_os_family == "RedHat"
+
+    - name: Preseed OpenLDAP generated_adminpw (Debian-based)
+      debconf:
+        name: slapd
+        question: slapd/internal/generated_adminpw
+        value: root
+        vtype: password
+      when: ansible_os_family == "Debian"
+
+    - name: Preseed OpenLDAP adminpw (Debian-based)
+      debconf:
+              name: slapd
+              question: slapd/internal/adminpw
+              value: root
+              vtype: password
+      when: ansible_os_family == "Debian"
+
+    - name: Preseed OpenLDAP password1 (Debian-based)
+      debconf:
+              name: slapd
+              question: slapd/password1
+              value: root
+              vtype: password
+      when: ansible_os_family == "Debian"
+
+    - name: Preseed OpenLDAP password2 (Debian-based)
+      debconf:
+              name: slapd
+              question: slapd/password2
+              value: root
+              vtype: password
+      when: ansible_os_family == "Debian"
+
+    - name: Install OpenLDAP (Debian-based)
+      debconf:
+              name: slapd
+              question: slapd/internal/generated_adminpw
+              value: root
+              vtype: password
+      when: ansible_os_family == "Debian"
+    
+    - name: Enable and start OpenLDAP
+      systemd:
+        state: started
+        enabled: yes
+        name: slapd

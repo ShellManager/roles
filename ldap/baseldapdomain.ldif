@@ -1,0 +1,19 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: dcObject
+objectclass: organization
+o: example com
+dc: example
+
+dn: cn=SystemUsers,dc=example,dc=com
+objectClass: organizationalRole
+cn: SystemUsers
+description: Directory SysOps
+
+dn: ou=Users,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Users
+
+dn: ou=Group,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Group 
