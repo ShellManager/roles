@@ -1,0 +1,27 @@
+---
+
+- hosts: nodes
+
+  become: true
+
+  tasks:
+    - name: Install required packages for LDAP Client (Debian-based)
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - libnss-ldap 
+        - libpam-ldap 
+        - ldap-utils 
+        - nscd
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages for LDAP Client (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - openldap 
+        - openldap-clients 
+        - nss-pam-ldapd
+      when: ansible_os_family == "RedHat"
