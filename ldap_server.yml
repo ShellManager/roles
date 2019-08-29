@@ -4,6 +4,9 @@
 
   become: true
 
+  vars_files:
+      - role.yml
+
   tasks:
     - name: Install OpenLDAP (RHEL-based)
       yum:
