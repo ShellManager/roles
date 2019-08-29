@@ -4,6 +4,9 @@
 
   become: true
 
+  vars_files:
+      - role.yml
+
   tasks:
     - name: Install required packages for LDAP Client (Debian-based)
       apt:
