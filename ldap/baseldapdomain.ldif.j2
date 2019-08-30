@@ -1,3 +1,4 @@
+#jinja2:variable_start_string:'[%', variable_end_string:'%]', trim_blocks: False
 dn: dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
 objectClass: top
 objectClass: dcObject
@@ -9,6 +10,11 @@ dn: cn=SystemUsers,dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
 objectClass: organizationalRole
 cn: SystemUsers
 description: Directory SysOps
+
+dn: cn=PlatformUsers,dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
+objectClass: organizationalRole
+cn: PlatformUsers
+description: Directory Users
 
 dn: ou=Users,dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
 objectClass: organizationalUnit
