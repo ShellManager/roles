@@ -34,11 +34,12 @@
       when: ansible_os_family == "Debian"
 
     - name: Install OpenLDAP (Debian-based)
-      debconf:
-              name: slapd
-              question: slapd/internal/generated_adminpw
-              value: root
-              vtype: password
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - slapd
+        - ldap-utils
       when: ansible_os_family == "Debian"
     
     - name: Enable and start OpenLDAP
