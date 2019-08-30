@@ -47,7 +47,7 @@
         enabled: yes
         name: slapd
 
-    - name: Copy LDAP ldifs to host
+    - name: Copy LDAP ldaprootpasswd to host
       copy:
         src: ldap/ldaprootpasswd.ldif
         dest: /tmp/ldaprootpasswd.ldif
@@ -55,6 +55,8 @@
         group: root
         mode: '0600'
         force: yes
+
+    - name: Copy LDAP ldapgroup-systemusers to host
       template:
         src: ldap/ldapgroup-systemusers.ldif.j2
         dest: /tmp/ldapgroup-systemusers.ldif
@@ -62,6 +64,8 @@
         group: root
         mode: '0600'
         force: yes
+
+    - name: Copy LDAP ldapgroup-platformusers to host
       template:
         src: ldap/ldapgroup-platformusers.ldif.j2
         dest: /tmp/ldapgroup-platformusers.ldif
@@ -69,6 +73,8 @@
         group: root
         mode: '0600'
         force: yes
+
+    - name: Copy LDAP ldapdomain to host
       template:
         src: ldap/ldapdomain.ldif.j2
         dest: /tmp/ldapdomain.ldif
@@ -76,8 +82,10 @@
         group: root
         mode: '0600'
         force: yes
+
+    - name: Copy LDAP baseldapdomain to host
       template:
-        src: ldap/base_ldap_domain.ldif.j2
+        src: ldap/baseldapdomain.ldif.j2
         dest: /tmp/baseldapdomain.ldif
         owner: root
         group: root
