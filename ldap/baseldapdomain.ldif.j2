@@ -1,0 +1,19 @@
+dn: dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
+objectClass: top
+objectClass: dcObject
+objectclass: organization
+o: [% ldap_base_domain %] [% ldap_base_ext %]
+dc: [% ldap_base_domain %]
+
+dn: cn=SystemUsers,dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
+objectClass: organizationalRole
+cn: SystemUsers
+description: Directory SysOps
+
+dn: ou=Users,dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
+objectClass: organizationalUnit
+ou: Users
+
+dn: ou=Group,dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
+objectClass: organizationalUnit
+ou: Group 
