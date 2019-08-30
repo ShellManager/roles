@@ -34,7 +34,7 @@
       when: ansible_os_family == "Debian"
 
     - name: Install OpenLDAP (Debian-based)
-      yum:
+      apt:
         name: "{{ packages }}"
       vars:
         packages:
