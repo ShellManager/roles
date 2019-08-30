@@ -15,6 +15,21 @@
         packages:
         - openldap
         - openldap-servers
+        - openldap-clients
+        - epel-release
+      when: ansible_os_family == "RedHat"
+
+    - name: Install pip (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - python-pip
+      when: ansible_os_family == "RedHat"
+
+    - name: Install pexpect pip module (RHEL-based)
+      shell: |
+        pip install -U pip pexpect
       when: ansible_os_family == "RedHat"
 
     - name: Preseed OpenLDAP password1 (Debian-based)
@@ -93,18 +108,54 @@
         mode: '0600'
         force: yes
 
-    - name: Import ldifs to LDAP
+    - name: Import ldifs to LDAP (RHEL-based)
       shell: |
         ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/ldaprootpasswd.ldif 
-        cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+        cp -f /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
         chown -R ldap:ldap /var/lib/ldap/DB_CONFIG
         systemctl restart slapd
         ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif 
         ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif
         ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif
         ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/ldapdomain.ldif
+        groupadd -r -g 1518 systemusers
+        groupadd -r -g 1511 platformusers
+      when: ansible_os_family == "RedHat"
+
+    - name: Import base domain
+      expect: 
+        command: ldapadd -x -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -W -f /tmp/baseldapdomain.ldif
+        responses:
+          (?i)Enter LDAP Password: "root"
+      when: ansible_os_family == "RedHat"
+
+    - name: Import SystemUsers
+      expect: 
+        command: ldapadd -x  -W -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -f /tmp/ldapgroup-systemusers.ldif
+        responses:
+          (?i)Enter LDAP Password: "root"
+      when: ansible_os_family == "RedHat"
+
+    - name: Import PlatformUsers
+      expect: 
+        command: ldapadd -x  -W -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -f /tmp/ldapgroup-platformusers.ldif
+        responses:
+          (?i)Enter LDAP Password: "root"
+      when: ansible_os_family == "RedHat"
+
+    - name: Import ldifs to LDAP (Debian-based)
+      shell: |
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/ldaprootpasswd.ldif 
+        cp -f /usr/share/slapd/DB_CONFIG /var/lib/ldap/DB_CONFIG
+        chown -R openldap:openldap /var/lib/ldap/DB_CONFIG
+        systemctl restart slapd
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/cosine.ldif 
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/nis.ldif
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/inetorgperson.ldif
+        ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/ldapdomain.ldif
         ldapadd -Y EXTERNAL -x -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -W -f baseldapdomain.ldif
         groupadd -r -g 1518 systemusers
         groupadd -r -g 1511 platformusers
         ldapadd -Y EXTERNAL -x  -W -D "cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}}" -f ldapgroup-systemusers.ldif
         ldapadd -Y EXTERNAL -x  -W -D "cn=PlatformUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}}" -f ldapgroup-platformusers.ldif
+      when: ansible_os_family == "Debian"
