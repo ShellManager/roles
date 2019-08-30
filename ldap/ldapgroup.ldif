@@ -1,0 +1,4 @@
+dn: cn=SystemUsers,ou=Group,dc=example,dc=com
+objectClass: top
+objectClass: posixGroup
+gidNumber: 1518
