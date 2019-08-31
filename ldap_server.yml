@@ -31,31 +31,6 @@
       shell: |
         pip install -U pip pexpect
       when: ansible_os_family == "RedHat"
-
-    - name: Preseed OpenLDAP password1 (Debian-based)
-      debconf:
-              name: slapd
-              question: slapd/password1
-              value: root
-              vtype: password
-      when: ansible_os_family == "Debian"
-
-    - name: Preseed OpenLDAP password2 (Debian-based)
-      debconf:
-              name: slapd
-              question: slapd/password2
-              value: root
-              vtype: password
-      when: ansible_os_family == "Debian"
-
-    - name: Install OpenLDAP (Debian-based)
-      apt:
-        name: "{{ packages }}"
-      vars:
-        packages:
-        - slapd
-        - ldap-utils
-      when: ansible_os_family == "Debian"
     
     - name: Enable and start OpenLDAP
       systemd:
@@ -127,35 +102,15 @@
         command: ldapadd -x -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -W -f /tmp/baseldapdomain.ldif
         responses:
           (?i)Enter LDAP Password: "root"
-      when: ansible_os_family == "RedHat"
 
     - name: Import SystemUsers
       expect: 
         command: ldapadd -x  -W -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -f /tmp/ldapgroup-systemusers.ldif
         responses:
           (?i)Enter LDAP Password: "root"
-      when: ansible_os_family == "RedHat"
 
     - name: Import PlatformUsers
       expect: 
         command: ldapadd -x  -W -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -f /tmp/ldapgroup-platformusers.ldif
         responses:
           (?i)Enter LDAP Password: "root"
-      when: ansible_os_family == "RedHat"
-
-    - name: Import ldifs to LDAP (Debian-based)
-      shell: |
-        ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/ldaprootpasswd.ldif 
-        cp -f /usr/share/slapd/DB_CONFIG /var/lib/ldap/DB_CONFIG
-        chown -R openldap:openldap /var/lib/ldap/DB_CONFIG
-        systemctl restart slapd
-        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/cosine.ldif 
-        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/nis.ldif
-        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/inetorgperson.ldif
-        ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/ldapdomain.ldif
-        ldapadd -Y EXTERNAL -x -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -W -f baseldapdomain.ldif
-        groupadd -r -g 1518 systemusers
-        groupadd -r -g 1511 platformusers
-        ldapadd -Y EXTERNAL -x  -W -D "cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}}" -f ldapgroup-systemusers.ldif
-        ldapadd -Y EXTERNAL -x  -W -D "cn=PlatformUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}}" -f ldapgroup-platformusers.ldif
-      when: ansible_os_family == "Debian"
