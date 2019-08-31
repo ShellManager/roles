@@ -33,7 +33,7 @@
       
     - name: Write out new mounts to fstab
       lineinfile:
-          path: /etc/exports
+          path: /etc/fstab
           line:  "{{ item.server }}:{{ item.path }} {{ item.mountpoint }} nfs {{ item.mountopts }} 0 0"
           create: yes
       loop: "{{ paths }}"
