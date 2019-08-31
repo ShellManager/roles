@@ -74,10 +74,15 @@
       when: ansible_os_family == "RedHat"
 
     - name: Create new directories
-      command: mkdir -p {{ item.path }}
+      file:
+        path: "{{ item.path }}"
+        state: directory
       loop: "{{ paths }}"
       when: item.create == true
-      
+
     - name: Write out new exports
-      command: echo "{{item.path}} {{item.subnet}}({{item.permissions}})"|tee /etc/exports
+      lineinfile:
+        path: /etc/exports
+        line: "{{ item.path }} {{ item.subnet }}({{ item.permissions }})"
+        create: yes
       loop: "{{ paths }}"
