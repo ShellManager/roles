@@ -3,3 +3,8 @@
 roles:
   - name: GitLab
     file: gitlab.yml
+    limit: all
+    
+  - name: NFS Server
+    file: nfs_server.yml
+    limit: all
