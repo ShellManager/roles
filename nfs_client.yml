@@ -1,0 +1,25 @@
+---
+
+- hosts: nodes
+
+  become: true
+
+  vars_files:
+      - role.yml
+
+  tasks:
+    - name: Install required packages for NFS Client (Debian-based)
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - nfs-common
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages for NFS Client (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - nfs-utils
+      when: ansible_os_family == "RedHat"
