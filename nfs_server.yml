@@ -72,3 +72,7 @@
         permanent: yes
         state: enabled
       when: ansible_os_family == "RedHat"
+
+    - name: Write out new exports
+      command: echo "{{item.path}} {{item.subnet}}({{item.permissions}})"|tee /etc/exports
+      loop: "{{ paths }}"
