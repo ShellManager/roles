@@ -23,3 +23,17 @@
         packages:
         - nfs-utils
       when: ansible_os_family == "RedHat"
+
+    - name: Create new directories
+      file:
+        path: "{{ item.path }}"
+        state: directory
+      loop: "{{ paths }}"
+      when: item.create == true
+      
+    - name: Write out new mounts to fstab
+      lineinfile:
+          path: /etc/exports
+          line:  "{{ item.server }}:{{ item.path }} {{ item.mountpoint }} nfs {{ item.mountopts }} 0 0"
+          create: yes
+      loop: "{{ paths }}"
