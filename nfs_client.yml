@@ -1,0 +1,39 @@
+---
+
+- hosts: nodes
+
+  become: true
+
+  vars_files:
+      - role.yml
+
+  tasks:
+    - name: Install required packages for NFS Client (Debian-based)
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - nfs-common
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages for NFS Client (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - nfs-utils
+      when: ansible_os_family == "RedHat"
+
+    - name: Create new directories
+      file:
+        path: "{{ item.path }}"
+        state: directory
+      loop: "{{ paths }}"
+      when: item.create == true
+      
+    - name: Write out new mounts to fstab
+      lineinfile:
+          path: /etc/fstab
+          line:  "{{ item.server }}:{{ item.path }} {{ item.mountpoint }} nfs {{ item.mountopts }} 0 0"
+          create: yes
+      loop: "{{ paths }}"
