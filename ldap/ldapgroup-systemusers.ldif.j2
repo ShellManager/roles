@@ -1,0 +1,5 @@
+#jinja2:variable_start_string:'[%', variable_end_string:'%]', trim_blocks: False
+dn: cn=SystemUsers,ou=Group,dc=[% ldap_base_domain %],dc=[% ldap_base_ext %]
+objectClass: top
+objectClass: posixGroup
+gidNumber: 1518

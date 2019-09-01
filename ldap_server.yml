@@ -1,0 +1,116 @@
+---
+
+- hosts: nodes
+
+  become: true
+
+  vars_files:
+      - role.yml
+
+  tasks:
+    - name: Install OpenLDAP (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - openldap
+        - openldap-servers
+        - openldap-clients
+        - epel-release
+      when: ansible_os_family == "RedHat"
+
+    - name: Install pip (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - python-pip
+      when: ansible_os_family == "RedHat"
+
+    - name: Install pexpect pip module (RHEL-based)
+      shell: |
+        pip install -U pip pexpect
+      when: ansible_os_family == "RedHat"
+    
+    - name: Enable and start OpenLDAP
+      systemd:
+        state: started
+        enabled: yes
+        name: slapd
+
+    - name: Copy LDAP ldaprootpasswd to host
+      copy:
+        src: ldap/ldaprootpasswd.ldif
+        dest: /tmp/ldaprootpasswd.ldif
+        owner: root
+        group: root
+        mode: '0600'
+        force: yes
+
+    - name: Copy LDAP ldapgroup-systemusers to host
+      template:
+        src: ldap/ldapgroup-systemusers.ldif.j2
+        dest: /tmp/ldapgroup-systemusers.ldif
+        owner: root
+        group: root
+        mode: '0600'
+        force: yes
+
+    - name: Copy LDAP ldapgroup-platformusers to host
+      template:
+        src: ldap/ldapgroup-platformusers.ldif.j2
+        dest: /tmp/ldapgroup-platformusers.ldif
+        owner: root
+        group: root
+        mode: '0600'
+        force: yes
+
+    - name: Copy LDAP ldapdomain to host
+      template:
+        src: ldap/ldapdomain.ldif.j2
+        dest: /tmp/ldapdomain.ldif
+        owner: root
+        group: root
+        mode: '0600'
+        force: yes
+
+    - name: Copy LDAP baseldapdomain to host
+      template:
+        src: ldap/baseldapdomain.ldif.j2
+        dest: /tmp/baseldapdomain.ldif
+        owner: root
+        group: root
+        mode: '0600'
+        force: yes
+
+    - name: Import ldifs to LDAP (RHEL-based)
+      shell: |
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/ldaprootpasswd.ldif 
+        cp -f /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+        chown -R ldap:ldap /var/lib/ldap/DB_CONFIG
+        systemctl restart slapd
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif 
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif
+        ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif
+        ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/ldapdomain.ldif
+        groupadd -r -g 1518 systemusers
+        groupadd -r -g 1511 platformusers
+      when: ansible_os_family == "RedHat"
+
+    - name: Import base domain
+      expect: 
+        command: ldapadd -x -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -W -f /tmp/baseldapdomain.ldif
+        responses:
+          (?i)Enter LDAP Password: "root"
+
+    - name: Import SystemUsers
+      expect: 
+        command: ldapadd -x  -W -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -f /tmp/ldapgroup-systemusers.ldif
+        responses:
+          (?i)Enter LDAP Password: "root"
+
+    - name: Import PlatformUsers
+      expect: 
+        command: ldapadd -x  -W -D cn=SystemUsers,dc={{ldap_base_domain}},dc={{ldap_base_ext}} -f /tmp/ldapgroup-platformusers.ldif
+        responses:
+          (?i)Enter LDAP Password: "root"

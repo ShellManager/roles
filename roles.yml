@@ -4,6 +4,10 @@ roles:
   - name: GitLab
     file: gitlab.yml
     limit: all
+
+  - name: LDAP Server
+    file: ldap_server.yml
+    limit: centos
     
   - name: NFS Server
     file: nfs_server.yml
