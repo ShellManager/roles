@@ -1,0 +1,88 @@
+---
+
+- hosts: nodes
+
+  become: true
+
+  vars_files:
+      - role.yml
+
+  tasks:
+    - name: Install required packages for NFS Server (Debian-based)
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - nfs-kernel-server
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages for NFS Server (RHEL-based)
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - nfs-utils
+      when: ansible_os_family == "RedHat"
+
+    - name: Enable and start rpcbind (RHEL-based)
+      systemd:
+        name: rpcbind
+        state: started
+        enabled: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Enable and start nfs-server (RHEL-based)
+      systemd:
+        name: nfs-server
+        state: started
+        enabled: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Enable and start nfs-lock (RHEL-based)
+      systemd:
+        name: nfs-lock
+        state: started
+        enabled: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Enable and start nfs-idmap (RHEL-based)
+      systemd:
+        name: nfs-idmap
+        state: started
+        enabled: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Whitelist nfs in firewalld
+      firewalld:
+        service: nfs
+        permanent: yes
+        state: enabled
+      when: ansible_os_family == "RedHat"
+
+    - name: Whitelist mountd in firewalld
+      firewalld:
+        service: mountd
+        permanent: yes
+        state: enabled
+      when: ansible_os_family == "RedHat"
+
+    - name: Whitelist rpc-bind in firewalld
+      firewalld:
+        service: rpc-bind
+        permanent: yes
+        state: enabled
+      when: ansible_os_family == "RedHat"
+
+    - name: Create new directories
+      file:
+        path: "{{ item.path }}"
+        state: directory
+      loop: "{{ paths }}"
+      when: item.create == true
+
+    - name: Write out new exports
+      lineinfile:
+        path: /etc/exports
+        line: "{{ item.path }} {{ item.subnet }}({{ item.permissions }})"
+        create: yes
+      loop: "{{ paths }}"

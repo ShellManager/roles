@@ -8,3 +8,11 @@ roles:
   - name: LDAP Server
     file: ldap_server.yml
     limit: centos
+    
+  - name: NFS Server
+    file: nfs_server.yml
+    limit: all
+    
+  - name: NFS Client
+    file: nfs_client.yml
+    limit: all
