@@ -8,7 +8,7 @@
       - role.yml
 
   tasks:
-    - name: Install OpenLDAP (RHEL-based)
+    - name: Install OpenLDAP Server (RHEL-based)
       yum:
         name: "{{ packages }}"
       vars:
